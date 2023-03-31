@@ -209,20 +209,16 @@ data ArchiveDescription = ArchiveDescription
 data ZipException
   = -- | Thrown when you try to get contents of non-existing entry
     EntryDoesNotExist FilePath EntrySelector
-#ifndef ENABLE_BZIP2
     -- | Thrown when attempting to decompress a 'BZip2' entry and the
     -- library is compiled without support for it.
     --
     -- @since 1.3.0
   | BZip2Unsupported
-#endif
-#ifndef ENABLE_ZSTD
     -- | Thrown when attempting to decompress a 'Zstd' entry and the
     -- library is compiled without support for it.
     --
     -- @since 1.6.0
   | ZstdUnsupported
-#endif
     -- | Thrown when archive structure cannot be parsed.
   | ParsingFailed FilePath String
   deriving (Eq, Ord, Typeable)
@@ -234,17 +230,11 @@ instance Show ZipException where
     "No such entry found: " ++ show s ++ " in " ++ show file
   show (ParsingFailed file msg) =
     "Parsing of archive structure failed: \n" ++ msg ++ "\nin " ++ show file
-
-#ifndef ENABLE_BZIP2
   show BZip2Unsupported =
     "Encountered a zipfile entry with BZip2 compression, but " ++
     "the zip library has been built with bzip2 disabled."
-#endif
-
-#ifndef ENABLE_ZSTD
   show ZstdUnsupported =
     "Encountered a zipfile entry with Zstd compression, but " ++
     "the zip library has been built with zstd disabled."
-#endif
 
 instance Exception ZipException
