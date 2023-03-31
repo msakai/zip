@@ -179,12 +179,24 @@ data CompressionMethod
     Store
   | -- | Deflate
     Deflate
+  | -- | Deflate64 (Compression/Decompression not supported)
+    --
+    -- @since 1.8.0
+    Deflate64
   | -- | Compressed using BZip2 algorithm
     BZip2
+  | -- | Compressed using LZMA algorithm (Compression/Decompression not supported)
+    --
+    -- @since 1.8.0
+    LZMA
   | -- | Compressed using Zstandard algorithm
     --
     -- @since 1.6.0
     Zstd
+  | -- | Compressed using PPMd algorithm (Compression/Decompression not supported)
+    --
+    -- @since 1.8.0
+    PPMd
   deriving (Show, Read, Eq, Ord, Enum, Bounded, Data, Typeable)
 
 ----------------------------------------------------------------------------

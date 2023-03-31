@@ -607,6 +607,7 @@ sinkData h compression = do
 #else
       Zstd -> throwM ZstdUnsupported
 #endif
+      _ -> throwM (UnsupportedCompressionMethod compression)
   return
     DataDescriptor
       { ddCRC32 = fromIntegral crc32,
@@ -1108,8 +1109,11 @@ fromVersion v = fromIntegral ((ZIP_OS `shiftL` 8) .|. (major * 10 + minor))
 toCompressionMethod :: Word16 -> Maybe CompressionMethod
 toCompressionMethod 0 = Just Store
 toCompressionMethod 8 = Just Deflate
+toCompressionMethod 9 = Just Deflate64
 toCompressionMethod 12 = Just BZip2
+toCompressionMethod 14 = Just LZMA
 toCompressionMethod 93 = Just Zstd
+toCompressionMethod 98 = Just PPMd
 toCompressionMethod _ = Nothing
 
 -- | Convert 'CompressionMethod' to its numeric representation as per the
@@ -1117,8 +1121,11 @@ toCompressionMethod _ = Nothing
 fromCompressionMethod :: CompressionMethod -> Word16
 fromCompressionMethod Store = 0
 fromCompressionMethod Deflate = 8
+fromCompressionMethod Deflate64 = 9
 fromCompressionMethod BZip2 = 12
+fromCompressionMethod LZMA = 14
 fromCompressionMethod Zstd = 93
+fromCompressionMethod PPMd = 98
 
 -- | Check if an entry with these parameters needs the Zip64 extension.
 needsZip64 :: EntryDescription -> Bool
@@ -1137,8 +1144,11 @@ getZipVersion zip64 m = max zip64ver mver
       Nothing -> [2, 0]
       Just Store -> [2, 0]
       Just Deflate -> [2, 0]
+      Just Deflate64 -> [2, 1]
       Just BZip2 -> [4, 6]
+      Just LZMA -> [6, 3]
       Just Zstd -> [6, 3]
+      Just PPMd -> [6, 3]
 
 -- | Return a decompressing 'Conduit' corresponding to the given compression
 -- method.
@@ -1160,6 +1170,8 @@ decompressingPipe Zstd = Zstandard.decompress
 #else
 decompressingPipe Zstd = throwM ZstdUnsupported
 #endif
+
+decompressingPipe compression = throwM (UnsupportedCompressionMethod compression)
 
 -- | A sink that calculates the CRC32 check sum for an incoming stream.
 crc32Sink :: ConduitT ByteString Void (ResourceT IO) Word32
