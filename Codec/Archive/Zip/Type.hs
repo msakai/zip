@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- |
 -- Module      :  Codec.Archive.Zip.Type
@@ -27,7 +28,7 @@ module Codec.Archive.Zip.Type
     ArchiveDescription (..),
 
     -- * Exceptions
-    ZipException (..),
+    ZipException (.., BZip2Unsupported, ZstdUnsupported),
   )
 where
 
@@ -209,19 +210,29 @@ data ArchiveDescription = ArchiveDescription
 data ZipException
   = -- | Thrown when you try to get contents of non-existing entry
     EntryDoesNotExist FilePath EntrySelector
-    -- | Thrown when attempting to decompress a 'BZip2' entry and the
-    -- library is compiled without support for it.
+    -- | Thrown when attempting to decompress an entry compressed by a
+    -- method and the method is unsupported or the library is compiled
+    -- without support for it.
     --
-    -- @since 1.3.0
-  | BZip2Unsupported
-    -- | Thrown when attempting to decompress a 'Zstd' entry and the
-    -- library is compiled without support for it.
-    --
-    -- @since 1.6.0
-  | ZstdUnsupported
+    -- @since 1.8.0
+  | UnsupportedCompressionMethod CompressionMethod
     -- | Thrown when archive structure cannot be parsed.
   | ParsingFailed FilePath String
   deriving (Eq, Ord, Typeable)
+
+-- | Thrown when attempting to decompress a 'BZip2' entry and the
+-- library is compiled without support for it.
+--
+-- @since 1.3.0
+pattern BZip2Unsupported :: ZipException
+pattern BZip2Unsupported = UnsupportedCompressionMethod BZip2
+
+-- | Thrown when attempting to decompress a 'Zstd' entry and the
+-- library is compiled without support for it.
+--
+-- @since 1.6.0
+pattern ZstdUnsupported :: ZipException
+pattern ZstdUnsupported = UnsupportedCompressionMethod Zstd
 
 {- ORMOLU_ENABLE -}
 
@@ -230,11 +241,8 @@ instance Show ZipException where
     "No such entry found: " ++ show s ++ " in " ++ show file
   show (ParsingFailed file msg) =
     "Parsing of archive structure failed: \n" ++ msg ++ "\nin " ++ show file
-  show BZip2Unsupported =
-    "Encountered a zipfile entry with BZip2 compression, but " ++
-    "the zip library has been built with bzip2 disabled."
-  show ZstdUnsupported =
-    "Encountered a zipfile entry with Zstd compression, but " ++
-    "the zip library has been built with zstd disabled."
+  show (UnsupportedCompressionMethod method) =
+    "Encountered a zipfile entry with " ++ show method ++ " compression, but " ++
+    "zip library does not support it or has been built without support for it."
 
 instance Exception ZipException
