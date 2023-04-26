@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE PatternSynonyms #-}
 
 -- |
 -- Module      :  Codec.Archive.Zip.Type
@@ -28,7 +27,7 @@ module Codec.Archive.Zip.Type
     ArchiveDescription (..),
 
     -- * Exceptions
-    ZipException (.., BZip2Unsupported, ZstdUnsupported),
+    ZipException (..),
   )
 where
 
@@ -219,20 +218,6 @@ data ZipException
     -- | Thrown when archive structure cannot be parsed.
   | ParsingFailed FilePath String
   deriving (Eq, Ord, Typeable)
-
--- | Thrown when attempting to decompress a 'BZip2' entry and the
--- library is compiled without support for it.
---
--- @since 1.3.0
-pattern BZip2Unsupported :: ZipException
-pattern BZip2Unsupported = UnsupportedCompressionMethod BZip2
-
--- | Thrown when attempting to decompress a 'Zstd' entry and the
--- library is compiled without support for it.
---
--- @since 1.6.0
-pattern ZstdUnsupported :: ZipException
-pattern ZstdUnsupported = UnsupportedCompressionMethod Zstd
 
 {- ORMOLU_ENABLE -}
 
