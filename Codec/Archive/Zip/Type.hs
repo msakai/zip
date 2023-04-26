@@ -242,7 +242,9 @@ instance Show ZipException where
   show (ParsingFailed file msg) =
     "Parsing of archive structure failed: \n" ++ msg ++ "\nin " ++ show file
   show (UnsupportedCompressionMethod method) =
-    "Encountered a zipfile entry with " ++ show method ++ " compression, but " ++
-    "zip library does not support it or has been built without support for it."
+    "Encountered a zipfile entry with "
+      ++ show method
+      ++ " compression, but "
+      ++ "zip library does not support it or has been built without support for it."
 
 instance Exception ZipException
